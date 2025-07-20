@@ -55,6 +55,10 @@ export default {
         return item.name
       } 
         
+      if (item.data.labels == null) {
+        return item.name;
+      }
+
       if (!("app.kubernetes.io/name" in item.data.labels)) {
         return item.name
       }
