@@ -21,6 +21,14 @@ If you want to modify CasaVue apperance, modyfing default main config file shoul
 <Code code={importedCfgMain} lang="yaml" title="main.yaml" />
 
 ## Static items definitions
-If you need to add a couple of entries from yourself in addition to the Kubernetes ones (or in case there is no entries from K8s), add the entries to the `items.yaml` file according to the example.
+If you need to add a couple of entries from yourself in addition to the Kubernetes ones (or in case there is no entries from K8s), add the entries to the `items.yaml`. Each item entry is described by following fields:
+| Field name | Required | Type | Description |
+| --- | :---: | --- | --- |
+| **name** | ✅ | string | The name of the item to be displayed. |
+| **namespace** | ✅ | string | The category in which the item should be placed. |
+| **url** | ✅ | string | URL to which the item should point to. |
+| **icon** | ❌ | string | Item icon URL override. |
+
+ Below is an example of static entry configuration content:
 
 <Code code={importedCfgItems} lang="yaml" title="items.yaml" />

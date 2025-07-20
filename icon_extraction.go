@@ -23,7 +23,7 @@ func findIconGitHub(entry *DashEntry, nameValue string) {
 	}
 
 	name := nameValue
-	ghUrl := "https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/"
+	ghUrl := "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/"
 	svgUrl := ghUrl + "svg/" + name + ".svg"
 	_, err := checkUrlStatus(svgUrl)
 	if err == nil {

@@ -32,6 +32,7 @@ items:
     - name: XKCD
       namespace: timekill
       url: "https://xkcd.com/"
+      icon: "https://xkcd.com/s/0b7742.png"
 
     - name: 9gag
       namespace: timekill

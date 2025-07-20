@@ -2,6 +2,14 @@
 
 [ Application Changelog ] | [ [Helm Chart Changelog](./deployment/helm/CHANGELOG.md) ]
 
+## 0.1.3
+- WebUI: Fixed items not showing on dashboard when no labels on Ingress resource.
+- App:
+  - Updated icon source from "https://github.com/walkxcode/dashboard-icons" to "https://github.com/homarr-labs/dashboard-icons".
+  - Added support for overriding icons in static item entries.
+  - Added library version locks.
+
+
 ## 0.1.2
 - WebUI: Fixed dashboard items update - prevented caching of API endpoint by ServiceWorker.
 

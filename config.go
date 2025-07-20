@@ -64,6 +64,7 @@ type Item struct {
 	Namespace   string `yaml:"namespace"`
 	Description string `yaml:"description"`
 	URL         string `yaml:"url"`
+	Icon        string `yaml:"icon"`
 }
 
 type StaticItems struct {
@@ -79,11 +80,11 @@ func loadConfig() {
 	// create config if not found (first run)
 	initConfig()
 
-        // load default config values
-        err := yaml.Unmarshal([]byte(default_config), &config)
-        if err != nil {
-                log.Fatal("Error unpacking default config values:", err)
-        }
+	// load default config values
+	err := yaml.Unmarshal([]byte(default_config), &config)
+	if err != nil {
+		log.Fatal("Error unpacking default config values:", err)
+	}
 
 	// read config file
 	yfile, err := ioutil.ReadFile(configFilePath)
@@ -185,7 +186,7 @@ func readStaticItems() {
 			continue
 		}
 
-		dashboardItems.write(staticItem.Name, DashEntry{staticItem.Namespace, staticItem.Description, staticItem.URL, "", "", make(map[string]string)})
+		dashboardItems.write(staticItem.Name, DashEntry{staticItem.Namespace, staticItem.Description, staticItem.URL, "", staticItem.Icon, make(map[string]string)})
 		log.Debug("Added static entry: ", staticItem.Name)
 	}
 	log.Info("Loaded static entries from configuration.")
