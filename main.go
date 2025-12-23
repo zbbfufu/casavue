@@ -6,8 +6,12 @@ import (
 	_ "embed"
 	"flag"
 	"net/http"
+	"path/filepath"
+
 	//	"time"
 	"sync"
+
+	"k8s.io/client-go/util/homedir"
 )
 
 const (
@@ -46,6 +50,14 @@ func main() {
 	// icon_crawl.go
 	refreshItems()
 
+	var kubeconfigPath string
+	if home := homedir.HomeDir(); home != "" {
+		flag.StringVar(&kubeconfigPath, "kubeconfig", filepath.Join(home, ".kube", "config"), "(Optional) absolute path to the kubeconfig file")
+	} else {
+		flag.StringVar(&kubeconfigPath, "kubeconfig", "", "absolute path to the kubeconfig file")
+	}
+	flag.Parse()
+
 	// customization.go
 	updateFrontendFiles()
 
@@ -54,7 +66,8 @@ func main() {
 	}
 
 	// kubernetes.go
-	go getAndWatchKubernetesIngressItems()
+	go getAndWatchKubernetesIngressItems(kubeconfigPath)
+	go getAndWatchKubernetesGatewayRoutes(kubeconfigPath)
 
 	// httpserver.go
 	initHttpServer()
