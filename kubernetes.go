@@ -238,7 +238,23 @@ func getAndWatchKubernetesGatewayRoutes(kubeconfigPath string) {
 		log.Warn("Error creating Gateway API config: ", err)
 		return
 	}
-
+       // Check if HTTPRoute resource is available
+       resources, err := clientset.Discovery().ServerResourcesForGroupVersion("gateway.networking.k8s.io/v1")
+       if err != nil {
+               log.Info("Could not query for server resources in gateway.networking.k8s.io/v1, skipping Gateway API watch: ", err)
+               return
+       }
+       httpRouteSupported := false
+       for _, resource := range resources.APIResources {
+               if resource.Name == "httproutes" && resource.Kind == "HTTPRoute" {
+                       httpRouteSupported = true
+                       break
+               }
+       }
+       if !httpRouteSupported {
+               log.Info("HTTPRoute resource not available on the cluster, skipping Gateway API watch.")
+               return
+       }
 	watchlist := cache.NewListWatchFromClient(clientset.GatewayV1().RESTClient(), "httproutes", metav1.NamespaceAll, fields.Everything())
 	_, controller := cache.NewInformer(
 		watchlist,
