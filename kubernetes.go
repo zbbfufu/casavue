@@ -85,13 +85,8 @@ func createDashEntryFromIngress(it *v1.Ingress) (string, DashEntry) {
 	return name, DashEntry{it.Namespace, description, URL, "", iconURL, it.Labels}
 }
 
-func getAndWatchKubernetesIngressItems(kubeconfigPath string) {
+func getAndWatchKubernetesIngressItems(kconfig *rest.Config) {
 	log.Info("Getting Kubernetes Ingress items")
-	// initiate variables
-	kconfig := getKubeConfig(kubeconfigPath)
-	if kconfig == nil {
-		return
-	}
 
 	clientset, err := kubernetes.NewForConfig(kconfig)
 	if err != nil {
@@ -209,13 +204,8 @@ func createDashEntryFromHTTPRoute(it *gatewayv1.HTTPRoute) (string, DashEntry) {
 	return name, DashEntry{it.Namespace, description, URL, "", iconURL, it.Labels}
 }
 
-func getAndWatchKubernetesGatewayRoutes(kubeconfigPath string) {
+func getAndWatchKubernetesGatewayRoutes(kconfig *rest.Config) {
 	log.Info("Getting Kubernetes Gateway API HTTPRoutes")
-
-	kconfig := getKubeConfig(kubeconfigPath)
-	if kconfig == nil {
-		return
-	}
 
 	clientset, err := gatewayversioned.NewForConfig(kconfig)
 	if err != nil {

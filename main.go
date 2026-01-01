@@ -66,8 +66,12 @@ func main() {
 	}
 
 	// kubernetes.go
-	go getAndWatchKubernetesIngressItems(kubeconfigPath)
-	go getAndWatchKubernetesGatewayRoutes(kubeconfigPath)
+	kconfig := getKubeConfig(kubeconfigPath)
+	if kconfig == nil {
+		return
+	}
+	go getAndWatchKubernetesIngressItems(kconfig)
+	go getAndWatchKubernetesGatewayRoutes(kconfig)
 
 	// httpserver.go
 	initHttpServer()
