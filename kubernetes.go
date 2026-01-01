@@ -19,6 +19,22 @@ import (
 	gatewayversioned "sigs.k8s.io/gateway-api/pkg/client/clientset/versioned"
 )
 
+func getKubeConfig(kubeconfigPath string) *rest.Config {
+	// creates the in-cluster config
+	kconfig, err := rest.InClusterConfig()
+	if err != nil {
+		log.Warn("Error creating K8s in-cluster config: ", err)
+	}
+
+	if _, err := os.Stat(kubeconfigPath); err == nil {
+		kconfig, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+		if err != nil {
+			log.Warn("Error building K8s config form flags: ", err)
+		}
+	}
+	return kconfig
+}
+
 func processAnnotations(annotations map[string]string) (description, nameOverride, iconURL, urlOverride string) {
 	if val, ok := annotations["casavue.app/description"]; ok {
 		log.Debug("Found description: ", val)
@@ -72,24 +88,7 @@ func createDashEntryFromIngress(it *v1.Ingress) (string, DashEntry) {
 func getAndWatchKubernetesIngressItems(kubeconfigPath string) {
 	log.Info("Getting Kubernetes Ingress items")
 	// initiate variables
-	var kubeconfig *string
-
-	// obtain kubeconfig file
-	kubeconfig = &kubeconfigPath
-
-	// creates the in-cluster config
-	kconfig, err := rest.InClusterConfig()
-	if err != nil {
-		log.Warn("Error creating K8s in-cluster config: ", err)
-	}
-
-	if _, err := os.Stat(*kubeconfig); err == nil {
-		kconfig, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		if err != nil {
-			log.Warn("Error building K8s config form flags: ", err)
-		}
-	}
-
+	kconfig := getKubeConfig(kubeconfigPath)
 	if kconfig == nil {
 		return
 	}
@@ -213,22 +212,7 @@ func createDashEntryFromHTTPRoute(it *gatewayv1.HTTPRoute) (string, DashEntry) {
 func getAndWatchKubernetesGatewayRoutes(kubeconfigPath string) {
 	log.Info("Getting Kubernetes Gateway API HTTPRoutes")
 
-	var kubeconfig *string
-	kubeconfig = &kubeconfigPath
-
-	// creates the in-cluster config
-	kconfig, err := rest.InClusterConfig()
-	if err != nil {
-		log.Warn("Error creating K8s in-cluster config: ", err)
-	}
-
-	if _, err := os.Stat(*kubeconfig); err == nil {
-		kconfig, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
-		if err != nil {
-			log.Warn("Error building K8s config form flags: ", err)
-		}
-	}
-
+	kconfig := getKubeConfig(kubeconfigPath)
 	if kconfig == nil {
 		return
 	}
@@ -238,23 +222,25 @@ func getAndWatchKubernetesGatewayRoutes(kubeconfigPath string) {
 		log.Warn("Error creating Gateway API config: ", err)
 		return
 	}
-       // Check if HTTPRoute resource is available
-       resources, err := clientset.Discovery().ServerResourcesForGroupVersion("gateway.networking.k8s.io/v1")
-       if err != nil {
-               log.Info("Could not query for server resources in gateway.networking.k8s.io/v1, skipping Gateway API watch: ", err)
-               return
-       }
-       httpRouteSupported := false
-       for _, resource := range resources.APIResources {
-               if resource.Name == "httproutes" && resource.Kind == "HTTPRoute" {
-                       httpRouteSupported = true
-                       break
-               }
-       }
-       if !httpRouteSupported {
-               log.Info("HTTPRoute resource not available on the cluster, skipping Gateway API watch.")
-               return
-       }
+
+	// Check if HTTPRoute resource is available
+	resources, err := clientset.Discovery().ServerResourcesForGroupVersion("gateway.networking.k8s.io/v1")
+	if err != nil {
+		log.Info("Could not query for server resources in gateway.networking.k8s.io/v1, skipping Gateway API watch: ", err)
+		return
+	}
+	httpRouteSupported := false
+	for _, resource := range resources.APIResources {
+		if resource.Name == "httproutes" && resource.Kind == "HTTPRoute" {
+			httpRouteSupported = true
+			break
+		}
+	}
+	if !httpRouteSupported {
+		log.Info("HTTPRoute resource not available on the cluster, skipping Gateway API watch.")
+		return
+	}
+
 	watchlist := cache.NewListWatchFromClient(clientset.GatewayV1().RESTClient(), "httproutes", metav1.NamespaceAll, fields.Everything())
 	_, controller := cache.NewInformer(
 		watchlist,
@@ -273,7 +259,7 @@ func getAndWatchKubernetesGatewayRoutes(kubeconfigPath string) {
 					return
 				}
 
-				// skip self check?
+				// skip self
 				if val, ok := route.Labels["app.kubernetes.io/name"]; ok {
 					if val == "casavue" {
 						log.Debug("Skipping self: ", route.Name)
